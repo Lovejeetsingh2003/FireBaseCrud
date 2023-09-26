@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "303082401825",
+    "project_id": "notes-app-c1c70",
+    "storage_bucket": "notes-app-c1c70.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303082401825:android:42d4b1a5c99a7c9fdab360",
+        "android_client_info": {
+          "package_name": "com.lovejeet.firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMXVkBeGyEHUGJlphQeAhvk7tuQEucFjo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

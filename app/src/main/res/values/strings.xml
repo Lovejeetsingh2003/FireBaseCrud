@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">FireBase</string>
+    <string name="tvList">List</string>
+    <string name="tvName">Name</string>
+    <string name="tvTitle">title</string>
+    <string name="tvDesc">Description</string>
+    <string name="ettitle">Enter Title</string>
+    <string name="btnSave">Save</string>
+    <string name="delete">Delete</string>
+    <string name="delete_msg">Delete Message</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+</resources>
