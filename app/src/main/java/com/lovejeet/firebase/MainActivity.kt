@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.lovejeet.firebase.databinding.ActivityMainBinding
@@ -21,29 +22,33 @@ class MainActivity : AppCompatActivity(), ListInterface {
     lateinit var binding: ActivityMainBinding
     lateinit var recyclerAdapter: RecyclerAdapter
     lateinit var layoutManager: LinearLayoutManager
-    var firestore= Firebase.firestore
-    var notes:ArrayList<Notes> = ArrayList()
+    var firestore = Firebase.firestore
+    var notes: ArrayList<Notes> = ArrayList()
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding=ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        recyclerAdapter= RecyclerAdapter(notes,this)
+        recyclerAdapter = RecyclerAdapter(notes, this)
         layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.rvNotes.layoutManager = layoutManager
         binding.rvNotes.adapter = recyclerAdapter
 
-        getCollectionData()
+      //  getCollectionData()
 
         binding.fabAdd.setOnClickListener {
-            var dialog=Dialog(this)
-            var dialogBinding:CustomdialogBinding
-            dialogBinding= CustomdialogBinding.inflate(layoutInflater)
+            var dialog = Dialog(this)
+            var dialogBinding: CustomdialogBinding
+            dialogBinding = CustomdialogBinding.inflate(layoutInflater)
             dialog.setContentView(dialogBinding.root)
             //   throw RuntimeException("Test Crash")
-            dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
             dialog.show()
             dialogBinding.textClock.setOnClickListener {
                 Toast.makeText(this@MainActivity, "TextClock", Toast.LENGTH_SHORT).show()
@@ -78,6 +83,31 @@ class MainActivity : AppCompatActivity(), ListInterface {
                 }
             }
         }
+
+        firestore.collection("Users")
+            .addSnapshotListener { value, error ->
+            if(error != null){
+                return@addSnapshotListener
+            }
+            for(data in value!!.documentChanges){
+                var notes = data.document.toObject(Notes::class.java)
+                notes.id = data.document.id
+                when(data.type){
+                    DocumentChange.Type.ADDED->{
+                       this.notes.add(notes)
+                    }
+                    DocumentChange.Type.REMOVED->{
+                        var removedIndex = this.notes.indexOfFirst { element-> element.id == notes.id }
+                        this.notes.removeAt(removedIndex)
+                    }
+                    DocumentChange.Type.MODIFIED->{
+                        var removedIndex = this.notes.indexOfFirst { element-> element.id == notes.id }
+                        this.notes.set(removedIndex, notes)
+                    }
+                }
+                recyclerAdapter.notifyDataSetChanged()
+            }
+        }
     }
 
     private fun getCollectionData() {
@@ -86,9 +116,9 @@ class MainActivity : AppCompatActivity(), ListInterface {
             .get()
             .addOnSuccessListener {
                 //  System.out.println("in snapshot ${it.documents}")
-                for(items in it.documents){
-                    var firestoreClass= items.toObject(Notes::class.java)?:Notes()
-                    firestoreClass.id=items.id
+                for (items in it.documents) {
+                    var firestoreClass = items.toObject(Notes::class.java) ?: Notes()
+                    firestoreClass.id = items.id
                     notes.add(firestoreClass)
                 }
                 recyclerAdapter.notifyDataSetChanged()
@@ -103,27 +133,19 @@ class MainActivity : AppCompatActivity(), ListInterface {
             .setPositiveButton(this.resources.getString(R.string.yes)) { _, _ ->
                 firestore.collection("Users").document(notes.id?:"").delete()
                     .addOnSuccessListener {
-                    Toast.makeText(this, "Data Deleted", Toast.LENGTH_SHORT).show()
-                    getCollectionData()
-                }
-                    .addOnFailureListener {
-                        Toast.makeText(this, "Data Deletion Failed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Data Deleted", Toast.LENGTH_SHORT).show()
+                        getCollectionData()
                     }
-                    .addOnCanceledListener {
-                        Toast.makeText(this, "Data Deletion Cancelled", Toast.LENGTH_SHORT).show()
-                    }
-
             }
-            .setNegativeButton(this.resources.getString(R.string.no)){ _, _->
+            .setNegativeButton(this.resources.getString(R.string.no)) { _, _ ->
 
             }
             .show()
-    }
+       }
 
     override fun onUpdateClick(notes: Notes, position: Int) {
         var dialog=Dialog(this)
-        var dialogBinding : CustomdialogBinding
-        dialogBinding= CustomdialogBinding.inflate(layoutInflater)
+        var dialogBinding : CustomdialogBinding = CustomdialogBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialogBinding.btnAdd.text = "Update"
